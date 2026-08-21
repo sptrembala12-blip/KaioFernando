@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { authLog } from "@/lib/auth-log";
 
 export type Role = "admin" | "garcom" | "cliente";
 
@@ -19,11 +20,11 @@ export function useAuth(): AuthState {
 
   useEffect(() => {
     // 1) listener primeiro
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, sess) => {
+    const { data: sub } = supabase.auth.onAuthStateChange((event, sess) => {
+      authLog("info", `onAuthStateChange ${event}`, { userId: sess?.user?.id ?? null });
       setSession(sess);
       setUser(sess?.user ?? null);
       if (sess?.user) {
-        // defer to avoid deadlock
         setTimeout(() => checkAdmin(sess.user.id), 0);
       } else {
         setIsAdmin(false);

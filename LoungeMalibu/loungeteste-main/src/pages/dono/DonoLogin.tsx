@@ -6,7 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
-import { USER_TESTE, SENHA_TESTE, entrarComUsuario, validarUsuario } from "@/lib/auth-usuario";
+import { USER_TESTE, SENHA_TESTE, entrarComUsuario, validarUsuario, traduzirErroAuth } from "@/lib/auth-usuario";
+import { AuthDebugPanel } from "@/components/AuthDebugPanel";
+import { authLog } from "@/lib/auth-log";
 
 export default function DonoLogin() {
   const nav = useNavigate();
@@ -16,7 +18,11 @@ export default function DonoLogin() {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
+    authLog("info", "useAuth", { loading, temUser: !!user, isAdmin });
     if (!loading && user && isAdmin) nav("/dono", { replace: true });
+    if (!loading && user && !isAdmin) {
+      authLog("erro", "entrou no Auth mas não é admin — user_roles sem role admin");
+    }
   }, [user, isAdmin, loading, nav]);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -30,8 +36,11 @@ export default function DonoLogin() {
     try {
       const { error } = await entrarComUsuario(supabase, usuario, password);
       if (error) throw error;
+      authLog("ok", "login sem error — aguardando isAdmin");
     } catch (err: any) {
-      toast.error("Não foi possível entrar", { description: "Usuário ou senha inválidos." });
+      const diag = traduzirErroAuth(err);
+      authLog("erro", diag.titulo, { detalhe: diag.detalhe, causa: diag.causa });
+      toast.error(diag.titulo, { description: diag.causa });
     } finally {
       setSubmitting(false);
     }
@@ -79,6 +88,7 @@ export default function DonoLogin() {
             {submitting ? "Entrando…" : "Entrar"}
           </Button>
         </form>
+        <AuthDebugPanel />
       </div>
     </div>
   );

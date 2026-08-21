@@ -6,18 +6,24 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
-import { USER_TESTE, SENHA_TESTE, entrarComUsuario, usuarioParaEmail, validarUsuario } from "@/lib/auth-usuario";
+import { USER_TESTE, SENHA_TESTE, entrarComUsuario, usuarioParaEmail, validarUsuario, traduzirErroAuth } from "@/lib/auth-usuario";
+import { AuthDebugPanel } from "@/components/AuthDebugPanel";
+import { authLog } from "@/lib/auth-log";
 
 export default function AdminLogin() {
   const nav = useNavigate();
   const { user, isAdmin, loading } = useAuth();
   const [mode, setMode] = useState<"login" | "signup">("login");
-  const [usuario, setUsuario] = useState("");
-  const [password, setPassword] = useState("");
+  const [usuario, setUsuario] = useState(USER_TESTE);
+  const [password, setPassword] = useState(SENHA_TESTE);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
+    authLog("info", "useAuth admin", { loading, temUser: !!user, isAdmin });
     if (!loading && user && isAdmin) nav("/admin", { replace: true });
+    if (!loading && user && !isAdmin) {
+      authLog("erro", "entrou no Auth mas não é admin — user_roles sem role admin");
+    }
   }, [user, isAdmin, loading, nav]);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -41,12 +47,16 @@ export default function AdminLogin() {
         });
         if (error) throw error;
         toast.success("Acesso criado.");
+        authLog("ok", "signup admin ok");
       } else {
         const { error } = await entrarComUsuario(supabase, usuario, password);
         if (error) throw error;
+        authLog("ok", "login admin sem error — aguardando isAdmin");
       }
     } catch (err: any) {
-      toast.error("Não foi possível entrar", { description: err?.message ?? "Usuário ou senha inválidos." });
+      const diag = traduzirErroAuth(err);
+      authLog("erro", diag.titulo, { detalhe: diag.detalhe, causa: diag.causa, raw: err?.message });
+      toast.error(diag.titulo, { description: diag.causa });
     } finally {
       setSubmitting(false);
     }
@@ -102,6 +112,7 @@ export default function AdminLogin() {
         >
           {mode === "login" ? "Criar acesso" : "Já tenho acesso"}
         </button>
+        <AuthDebugPanel />
       </div>
     </div>
   );
