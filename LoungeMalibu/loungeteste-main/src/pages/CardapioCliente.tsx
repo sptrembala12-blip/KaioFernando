@@ -212,7 +212,7 @@ export default function CardapioCliente() {
         ) : visiveis.length === 0 ? (
           <div className="glass-card p-12 text-center">
             <Wine className="h-10 w-10 mx-auto text-muted-foreground/40 mb-3" />
-            <p className="text-muted-foreground text-sm">{busca ? "Nada encontrado." : "Cardápio vazio. Cadastre produtos no painel."}</p>
+            <p className="text-muted-foreground text-sm">{busca ? "Nada encontrado." : "Cardápio vazio"}</p>
           </div>
         ) : (
           catsVisiveis.map((cat) => (
@@ -369,7 +369,7 @@ function CheckoutSheet({
           <ul className="space-y-3">
             {itens.map((it) => (
               <li key={it.produto.id} className="flex items-center gap-3">
-                <Foto url={it.produto.imagem_url} nome={it.produto.nome} />
+                <Foto url={it.produto.imagem_url} nome={it.produto.nome} compact />
                 <div className="flex-1 min-w-0">
                   <div className="font-medium truncate">{it.produto.nome}</div>
                   <div className="text-sm text-muted-foreground">{formatBRL(it.produto.preco_centavos)}</div>
