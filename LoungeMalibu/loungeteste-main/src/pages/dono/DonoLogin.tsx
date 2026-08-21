@@ -6,13 +6,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
-import { usuarioParaEmail, validarUsuario } from "@/lib/auth-usuario";
+import { USER_TESTE, SENHA_TESTE, entrarComUsuario, validarUsuario } from "@/lib/auth-usuario";
 
 export default function DonoLogin() {
   const nav = useNavigate();
   const { user, isAdmin, loading } = useAuth();
-  const [usuario, setUsuario] = useState("");
-  const [password, setPassword] = useState("");
+  const [usuario, setUsuario] = useState(USER_TESTE);
+  const [password, setPassword] = useState(SENHA_TESTE);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -28,10 +28,7 @@ export default function DonoLogin() {
     }
     setSubmitting(true);
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email: usuarioParaEmail(usuario),
-        password,
-      });
+      const { error } = await entrarComUsuario(supabase, usuario, password);
       if (error) throw error;
     } catch (err: any) {
       toast.error("Não foi possível entrar", { description: "Usuário ou senha inválidos." });

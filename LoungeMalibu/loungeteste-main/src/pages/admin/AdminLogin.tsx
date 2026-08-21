@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
-import { usuarioParaEmail, validarUsuario } from "@/lib/auth-usuario";
+import { USER_TESTE, SENHA_TESTE, entrarComUsuario, usuarioParaEmail, validarUsuario } from "@/lib/auth-usuario";
 
 export default function AdminLogin() {
   const nav = useNavigate();
@@ -42,7 +42,7 @@ export default function AdminLogin() {
         if (error) throw error;
         toast.success("Acesso criado.");
       } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        const { error } = await entrarComUsuario(supabase, usuario, password);
         if (error) throw error;
       }
     } catch (err: any) {
