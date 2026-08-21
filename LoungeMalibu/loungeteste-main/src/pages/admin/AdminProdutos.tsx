@@ -8,7 +8,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { formatBRL, parseBRLToCentavos } from "@/lib/format";
-import { Plus, Pencil, Trash2, Search, Wine } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, Wine, ImagePlus } from "lucide-react";
+import { uploadFotoProduto } from "@/lib/upload-produto";
 
 interface Produto {
   id: string;
@@ -29,6 +30,9 @@ export default function AdminProdutos() {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Produto | null>(null);
   const [form, setForm] = useState(empty);
+  const [arquivo, setArquivo] = useState<File | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
+  const [salvando, setSalvando] = useState(false);
   const [busca, setBusca] = useState("");
   const [catAtiva, setCatAtiva] = useState<string | null>(null);
 
@@ -54,11 +58,15 @@ export default function AdminProdutos() {
   function openNew() {
     setEditing(null);
     setForm(empty);
+    setArquivo(null);
+    setPreview(null);
     setOpen(true);
   }
 
   function openEdit(p: Produto) {
     setEditing(p);
+    setArquivo(null);
+    setPreview(p.imagem_url);
     setForm({
       nome: p.nome,
       descricao: p.descricao ?? "",
@@ -72,21 +80,30 @@ export default function AdminProdutos() {
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
-    const payload = {
-      nome: form.nome,
-      descricao: form.descricao || null,
-      preco_centavos: parseBRLToCentavos(form.preco),
-      categoria: form.categoria,
-      imagem_url: form.imagem_url || null,
-      estoque: parseInt(form.estoque) || 0,
-    };
-    const { error } = editing
-      ? await supabase.from("produtos").update(payload).eq("id", editing.id)
-      : await supabase.from("produtos").insert(payload);
-    if (error) return toast.error(error.message);
-    toast.success(editing ? "Produto atualizado" : "Produto criado");
-    setOpen(false);
-    load();
+    setSalvando(true);
+    try {
+      let imagem_url = form.imagem_url || null;
+      if (arquivo) imagem_url = await uploadFotoProduto(arquivo);
+      const payload = {
+        nome: form.nome,
+        descricao: form.descricao || null,
+        preco_centavos: parseBRLToCentavos(form.preco),
+        categoria: form.categoria,
+        imagem_url,
+        estoque: parseInt(form.estoque) || 0,
+      };
+      const { error } = editing
+        ? await supabase.from("produtos").update(payload).eq("id", editing.id)
+        : await supabase.from("produtos").insert(payload);
+      if (error) throw error;
+      toast.success(editing ? "Produto atualizado" : "Produto criado");
+      setOpen(false);
+      load();
+    } catch (err: any) {
+      toast.error(err?.message ?? "Falha ao salvar");
+    } finally {
+      setSalvando(false);
+    }
   }
 
   async function remove(p: Produto) {
