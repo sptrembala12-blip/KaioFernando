@@ -139,8 +139,30 @@ export default function AdminProdutos() {
                 <div className="space-y-2"><Label>Estoque</Label><Input required type="number" min={0} value={form.estoque} onChange={(e) => setForm({ ...form, estoque: e.target.value })} className="rounded-xl bg-input/60" /></div>
               </div>
               <div className="space-y-2"><Label>Categoria</Label><Input value={form.categoria} onChange={(e) => setForm({ ...form, categoria: e.target.value })} className="rounded-xl bg-input/60" /></div>
-              <div className="space-y-2"><Label>URL da imagem</Label><Input value={form.imagem_url} onChange={(e) => setForm({ ...form, imagem_url: e.target.value })} placeholder="https://…" className="rounded-xl bg-input/60" /></div>
-              <Button type="submit" className="w-full h-11 rounded-2xl bg-gradient-primary text-primary-foreground font-semibold ios-tap">Salvar</Button>
+              <div className="space-y-2">
+                <Label>Foto</Label>
+                <label className="glass-card flex items-center gap-4 p-3 cursor-pointer ios-tap">
+                  <div className="h-20 w-20 rounded-2xl bg-secondary overflow-hidden shrink-0 grid place-items-center">
+                    {preview ? <img src={preview} alt="" className="h-full w-full object-cover" /> : <ImagePlus className="h-7 w-7 text-primary/50" />}
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    {arquivo ? arquivo.name : "Toque para enviar uma foto"}
+                  </div>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const f = e.target.files?.[0] ?? null;
+                      setArquivo(f);
+                      if (f) setPreview(URL.createObjectURL(f));
+                    }}
+                  />
+                </label>
+              </div>
+              <Button type="submit" disabled={salvando} className="w-full h-11 rounded-2xl bg-gradient-primary text-primary-foreground font-semibold ios-tap">
+                {salvando ? "Enviando…" : "Salvar"}
+              </Button>
             </form>
           </DialogContent>
         </Dialog>
