@@ -19,7 +19,6 @@ export function useAuth(): AuthState {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // 1) listener primeiro
     const { data: sub } = supabase.auth.onAuthStateChange((event, sess) => {
       authLog("info", `onAuthStateChange ${event}`, { userId: sess?.user?.id ?? null });
       setSession(sess);
@@ -28,27 +27,33 @@ export function useAuth(): AuthState {
         setTimeout(() => checkAdmin(sess.user.id), 0);
       } else {
         setIsAdmin(false);
+        setLoading(false);
       }
     });
 
-    // 2) sessão existente
-    supabase.auth.getSession().then(({ data: { session: s } }) => {
+    supabase.auth.getSession().then(async ({ data: { session: s } }) => {
       setSession(s);
       setUser(s?.user ?? null);
-      if (s?.user) checkAdmin(s.user.id);
-      setLoading(false);
+      if (s?.user) await checkAdmin(s.user.id);
+      else setLoading(false);
     });
 
     return () => sub.subscription.unsubscribe();
   }, []);
 
   async function checkAdmin(uid: string) {
-    const { data } = await supabase
+    authLog("info", "checkAdmin", { uid });
+    const { data, error } = await supabase
       .from("user_roles")
       .select("role")
       .eq("user_id", uid)
       .eq("role", "admin")
       .maybeSingle();
+    authLog(error ? "erro" : "ok", "checkAdmin resultado", {
+      isAdmin: !!data,
+      error: error?.message,
+      data,
+    });
     setIsAdmin(!!data);
     setLoading(false);
   }
