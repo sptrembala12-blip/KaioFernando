@@ -24,7 +24,7 @@ const url = env.VITE_SUPABASE_URL;
 const key = env.VITE_SUPABASE_PUBLISHABLE_KEY;
 const emailNovo = "teste@malibu.app";
 const emailVelho = "teste@malibu.local";
-const password = "teste123";
+const password = "Malibu#2026";
 
 function log(level, msg, data) {
   const stamp = new Date().toISOString();

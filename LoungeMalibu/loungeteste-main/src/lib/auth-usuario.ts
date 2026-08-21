@@ -26,6 +26,13 @@ export function traduzirErroAuth(err: any): { titulo: string; detalhe: string; c
   const code = String(err?.code ?? "");
   const blob = `${code} ${msg}`.toLowerCase();
 
+  if (/weak_password|easy to guess|known to be weak/.test(blob)) {
+    return {
+      titulo: "Senha rejeitada pelo Supabase",
+      detalhe: msg,
+      causa: "A senha está na lista de senhas fracas. Use uma senha mais forte (já atualizei a de teste).",
+    };
+  }
   if (/email not confirmed|email_not_confirmed/.test(blob)) {
     return {
       titulo: "E-mail interno não confirmado",
