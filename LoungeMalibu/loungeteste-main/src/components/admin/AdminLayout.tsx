@@ -50,6 +50,12 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
               );
             })}
           </nav>
+          <RouterNavLink
+            to="/dono"
+            className="hidden sm:flex ios-tap items-center px-3 h-10 rounded-2xl text-sm font-medium text-primary hover:bg-primary/10"
+          >
+            App do dono
+          </RouterNavLink>
           <Button variant="ghost" size="sm" onClick={logout} className="rounded-2xl">
             <LogOut className="h-4 w-4 mr-2" /> Sair
           </Button>

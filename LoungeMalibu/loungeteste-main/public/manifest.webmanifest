@@ -1,0 +1,16 @@
+{
+  "name": "LoungeOS Dono",
+  "short_name": "Dono",
+  "description": "Caixa do dono: venda aprovada só após confirmação manual do pagamento.",
+  "start_url": "/dono",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0a0c10",
+  "theme_color": "#0a0c10",
+  "lang": "pt-BR",
+  "icons": [
+    { "src": "/favicon.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/favicon.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

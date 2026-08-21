@@ -10,6 +10,8 @@ import AdminPedidos from "./pages/admin/AdminPedidos";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminProdutos from "./pages/admin/AdminProdutos";
 import AdminMesas from "./pages/admin/AdminMesas";
+import DonoApp from "./pages/dono/DonoApp";
+import DonoLogin from "./pages/dono/DonoLogin";
 import { AdminProtectedRoute } from "./components/AdminProtectedRoute";
 
 const queryClient = new QueryClient();
@@ -27,6 +29,8 @@ const App = () => (
           <Route path="/admin/dashboard" element={<AdminProtectedRoute><AdminDashboard /></AdminProtectedRoute>} />
           <Route path="/admin/produtos" element={<AdminProtectedRoute><AdminProdutos /></AdminProtectedRoute>} />
           <Route path="/admin/mesas" element={<AdminProtectedRoute><AdminMesas /></AdminProtectedRoute>} />
+          <Route path="/dono/login" element={<DonoLogin />} />
+          <Route path="/dono" element={<AdminProtectedRoute loginPath="/dono/login"><DonoApp /></AdminProtectedRoute>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

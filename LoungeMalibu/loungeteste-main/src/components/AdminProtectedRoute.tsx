@@ -1,7 +1,13 @@
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 
-export function AdminProtectedRoute({ children }: { children: React.ReactNode }) {
+export function AdminProtectedRoute({
+  children,
+  loginPath = "/admin/login",
+}: {
+  children: React.ReactNode;
+  loginPath?: string;
+}) {
   const { user, isAdmin, loading } = useAuth();
 
   if (loading) {
@@ -16,7 +22,7 @@ export function AdminProtectedRoute({ children }: { children: React.ReactNode })
     );
   }
 
-  if (!user) return <Navigate to="/admin/login" replace />;
+  if (!user) return <Navigate to={loginPath} replace />;
   if (!isAdmin) {
     return (
       <div className="min-h-screen grid place-items-center p-6">
