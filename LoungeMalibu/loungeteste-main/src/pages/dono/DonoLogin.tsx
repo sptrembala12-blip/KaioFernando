@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
-import { USER_TESTE, SENHA_TESTE, entrarComUsuario, validarUsuario, traduzirErroAuth } from "@/lib/auth-usuario";
+import { USER_TESTE, SENHA_TESTE, SQL_CONFIRMAR_TESTE, entrarComUsuario, validarUsuario, traduzirErroAuth } from "@/lib/auth-usuario";
 import { AuthDebugPanel } from "@/components/AuthDebugPanel";
 import { authLog } from "@/lib/auth-log";
 
@@ -16,6 +16,7 @@ export default function DonoLogin() {
   const [usuario, setUsuario] = useState(USER_TESTE);
   const [password, setPassword] = useState(SENHA_TESTE);
   const [submitting, setSubmitting] = useState(false);
+  const [precisaSql, setPrecisaSql] = useState(false);
 
   useEffect(() => {
     authLog("info", "useAuth", { loading, temUser: !!user, isAdmin });
@@ -88,6 +89,12 @@ export default function DonoLogin() {
             {submitting ? "Entrando…" : "Entrar"}
           </Button>
         </form>
+        {precisaSql && (
+          <div className="mt-4 glass-card p-4 space-y-2 text-left">
+            <p className="text-xs text-muted-foreground">Conta criada. Confirme no SQL Editor do Supabase e entre de novo:</p>
+            <pre className="text-[10px] font-mono whitespace-pre-wrap break-all text-primary/90">{SQL_CONFIRMAR_TESTE}</pre>
+          </div>
+        )}
         <AuthDebugPanel />
       </div>
     </div>

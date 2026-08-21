@@ -4,6 +4,11 @@ const DOMINIO = "malibu.app";
 
 export const USER_TESTE = "teste";
 export const SENHA_TESTE = "Malibu#2026";
+export const EMAIL_TESTE = `${USER_TESTE}@${DOMINIO}`;
+
+export const SQL_CONFIRMAR_TESTE = `update auth.users
+set email_confirmed_at = now()
+where email = 'teste@malibu.app';`;
 
 export function normalizarUsuario(usuario: string) {
   return usuario.trim().toLowerCase();
@@ -38,7 +43,7 @@ export function traduzirErroAuth(err: any): { titulo: string; detalhe: string; c
       titulo: "E-mail interno não confirmado",
       detalhe: msg,
       causa:
-        "O Supabase está exigindo confirmação de e-mail. O usuário teste usa e-mail interno e nunca chega inbox. Desative Confirm email em Authentication > Providers > Email.",
+        "A conta existe, mas o Supabase exige confirmar e-mail. Cole no SQL Editor: update auth.users set email_confirmed_at = now() where email = 'teste@malibu.app';",
     };
   }
   if (/invalid login|invalid_credentials|invalid login credentials/.test(blob)) {
