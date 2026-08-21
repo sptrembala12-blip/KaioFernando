@@ -3,7 +3,7 @@ import { authLog, dumpAuthError } from "@/lib/auth-log";
 const DOMINIO = "malibu.app";
 
 export const USER_TESTE = "teste";
-export const SENHA_TESTE = "teste123";
+export const SENHA_TESTE = "Malibu#2026";
 
 export function normalizarUsuario(usuario: string) {
   return usuario.trim().toLowerCase();
@@ -84,15 +84,24 @@ export async function entrarComUsuario(
   });
   if (!login.error && login.data?.session) return login;
 
-  const ehTeste = normalizarUsuario(usuario) === USER_TESTE && password === SENHA_TESTE;
-  authLog("info", "é usuário teste?", ehTeste);
-  if (!ehTeste) return login;
+  const ehTeste = normalizarUsuario(usuario) === USER_TESTE;
+  authLog("info", "é usuário teste?", {
+    ehTeste,
+    senhaLen: password.length,
+    senhaLenPadrao: SENHA_TESTE.length,
+  });
 
-  authLog("info", "2) signUp automático do teste");
+  const podeCriar =
+    ehTeste ||
+    login.error?.code === "invalid_credentials" ||
+    /invalid login/i.test(login.error?.message ?? "");
+  if (!podeCriar) return login;
+
+  authLog("info", "2) signUp (primeiro acesso)");
   const created = await supabase.auth.signUp({
     email,
     password,
-    options: { data: { display_name: USER_TESTE } },
+    options: { data: { display_name: normalizarUsuario(usuario) } },
   });
   authLog(created.error ? "warn" : "ok", "2) resultado signUp", {
     error: dumpAuthError(created.error),
