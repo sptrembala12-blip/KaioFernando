@@ -41,7 +41,10 @@ export default function DonoLogin() {
     } catch (err: any) {
       const diag = traduzirErroAuth(err);
       authLog("erro", diag.titulo, { detalhe: diag.detalhe, causa: diag.causa });
-      toast.error(diag.titulo, { description: diag.causa });
+      toast.error(diag.titulo);
+      if (/email_not_confirmed|not confirmed/i.test(String(err?.code ?? "") + String(err?.message ?? ""))) {
+        setPrecisaSql(true);
+      }
     } finally {
       setSubmitting(false);
     }

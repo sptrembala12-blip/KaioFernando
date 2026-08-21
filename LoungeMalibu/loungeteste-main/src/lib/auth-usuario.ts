@@ -97,6 +97,11 @@ export async function entrarComUsuario(
   });
   if (!login.error && login.data?.session) return login;
 
+  if (login.error?.code === "email_not_confirmed" || /email not confirmed/i.test(login.error?.message ?? "")) {
+    authLog("erro", "conta existe e não está confirmada — não tenta signup de novo");
+    return login;
+  }
+
   const ehTeste = normalizarUsuario(usuario) === USER_TESTE;
   authLog("info", "é usuário teste?", {
     ehTeste,
