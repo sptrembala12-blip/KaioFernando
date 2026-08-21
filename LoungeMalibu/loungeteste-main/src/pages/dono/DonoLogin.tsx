@@ -36,6 +36,9 @@ export default function DonoLogin() {
     try {
       const { error } = await entrarComUsuario(supabase, usuario, password);
       if (error) throw error;
+      if ("Notification" in window && Notification.permission === "default") {
+        await Notification.requestPermission();
+      }
       authLog("ok", "login sem error — aguardando isAdmin");
     } catch (err: any) {
       const diag = traduzirErroAuth(err);

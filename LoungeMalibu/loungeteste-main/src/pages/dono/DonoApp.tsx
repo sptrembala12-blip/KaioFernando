@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { formatBRL } from "@/lib/format";
 import { playCashSound } from "@/lib/sound";
 import { lerPrefs, salvarPrefs, type DonoPrefs } from "@/lib/dono-prefs";
+import { notificarVendaPWA, pedirPermissaoPush } from "@/lib/notify-venda";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import {
@@ -96,16 +97,12 @@ export default function DonoApp() {
   }
 
   async function ativarPush() {
-    if (!("Notification" in window)) {
-      setPushStatus("unsupported");
-      toast.error("Este aparelho não suporta notificação.");
-      return;
-    }
-    const perm = await Notification.requestPermission();
+    const perm = await pedirPermissaoPush();
     setPushStatus(perm);
     persist({ ...prefsRef.current, push: perm === "granted" });
     if (perm === "granted") toast.success("Notificações ativadas.");
-    else toast.error("Permissão negada no navegador.");
+    else if (perm === "denied") toast.error("Permissão negada no navegador.");
+    else if (perm === "unsupported") toast.error("Este aparelho não suporta notificação.");
   }
 
   function anunciar(venda: Venda) {
@@ -117,12 +114,7 @@ export default function DonoApp() {
     if (prefsRef.current.som) playCashSound();
     setAprovada(venda);
     toast.success(msg, { description: desc });
-    if (prefsRef.current.push && "Notification" in window && Notification.permission === "granted") {
-      try {
-        const n = new Notification("LoungeMalibu", { body: `${msg} · ${desc}`, icon: "/favicon.png", tag: venda.id, silent: true });
-        setTimeout(() => n.close(), 9000);
-      } catch { /* ignore */ }
-    }
+    if (prefsRef.current.push) void notificarVendaPWA("LoungeMalibu", `${msg} · ${desc}`, venda.id);
   }
 
   useEffect(() => {
@@ -214,6 +206,21 @@ export default function DonoApp() {
           </div>
         </div>
       </header>
+
+      {pushStatus === "default" && (
+        <div className="max-w-lg mx-auto w-full px-4 pt-3">
+          <button
+            onClick={() => void ativarPush()}
+            className="w-full glass-card px-4 py-3 flex items-center gap-3 text-left ios-tap ring-amber-glow"
+          >
+            <BellRing className="h-5 w-5 text-primary shrink-0" />
+            <div className="flex-1 min-w-0">
+              <div className="text-sm font-medium">Ativar notificações</div>
+              <div className="text-xs text-muted-foreground">O celular avisa quando a venda é aprovada</div>
+            </div>
+          </button>
+        </div>
+      )}
 
       <main className="flex-1 max-w-lg mx-auto w-full px-4 py-5 space-y-5 pb-12">
         <div className="glass-card p-5 ring-amber-glow">
