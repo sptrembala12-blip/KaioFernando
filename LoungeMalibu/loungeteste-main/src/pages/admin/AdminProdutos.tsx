@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { formatBRL, parseBRLToCentavos } from "@/lib/format";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, Wine } from "lucide-react";
 
 interface Produto {
   id: string;
@@ -29,6 +29,8 @@ export default function AdminProdutos() {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Produto | null>(null);
   const [form, setForm] = useState(empty);
+  const [busca, setBusca] = useState("");
+  const [catAtiva, setCatAtiva] = useState<string | null>(null);
 
   async function load() {
     setLoading(true);
@@ -38,6 +40,16 @@ export default function AdminProdutos() {
   }
 
   useEffect(() => { load(); }, []);
+
+  const categorias = useMemo(() => Array.from(new Set(produtos.map((p) => p.categoria))), [produtos]);
+  const visiveis = useMemo(() => {
+    const t = busca.trim().toLowerCase();
+    return produtos.filter((p) => {
+      if (catAtiva && p.categoria !== catAtiva) return false;
+      if (!t) return true;
+      return p.nome.toLowerCase().includes(t) || (p.descricao ?? "").toLowerCase().includes(t) || p.categoria.toLowerCase().includes(t);
+    });
+  }, [produtos, busca, catAtiva]);
 
   function openNew() {
     setEditing(null);
@@ -87,7 +99,7 @@ export default function AdminProdutos() {
 
   return (
     <AdminLayout>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-6 gap-3">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Produtos</h1>
           <p className="text-sm text-muted-foreground mt-1">{produtos.length} no catálogo</p>
@@ -117,21 +129,37 @@ export default function AdminProdutos() {
         </Dialog>
       </div>
 
+      <div className="relative mb-4">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Buscar" className="h-11 rounded-2xl bg-input/50 pl-10" />
+      </div>
+
+      {categorias.length > 1 && (
+        <div className="flex gap-2 overflow-x-auto no-scrollbar mb-4">
+          <button onClick={() => setCatAtiva(null)} className={`shrink-0 h-8 px-3 rounded-full text-xs font-medium ${!catAtiva ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"}`}>Tudo</button>
+          {categorias.map((c) => (
+            <button key={c} onClick={() => setCatAtiva((cur) => (cur === c ? null : c))} className={`shrink-0 h-8 px-3 rounded-full text-xs font-medium ${catAtiva === c ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"}`}>{c}</button>
+          ))}
+        </div>
+      )}
+
       {loading ? (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">{Array.from({ length: 6 }).map((_, i) => <div key={i} className="glass-card h-40 animate-pulse" />)}</div>
+      ) : visiveis.length === 0 ? (
+        <div className="glass-card p-12 text-center text-muted-foreground">Nenhum produto</div>
       ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {produtos.map((p) => (
+          {visiveis.map((p) => (
             <div key={p.id} className={`glass-card p-4 flex gap-3 ${!p.ativo ? "opacity-50" : ""}`}>
-              <div className="h-20 w-20 rounded-2xl bg-secondary overflow-hidden shrink-0">
-                {p.imagem_url && <img src={p.imagem_url} alt={p.nome} className="h-full w-full object-cover" />}
+              <div className="h-20 w-20 rounded-2xl bg-secondary overflow-hidden shrink-0 grid place-items-center">
+                {p.imagem_url ? <img src={p.imagem_url} alt={p.nome} className="h-full w-full object-cover" /> : <Wine className="h-7 w-7 text-primary/40" />}
               </div>
               <div className="flex-1 min-w-0">
                 <div className="text-xs text-primary font-medium uppercase tracking-wider">{p.categoria}</div>
                 <div className="font-semibold truncate">{p.nome}</div>
                 <div className="text-sm text-muted-foreground">{formatBRL(p.preco_centavos)}</div>
-                <div className={`text-xs mt-1 ${p.estoque <= 0 ? "text-destructive" : "text-muted-foreground"}`}>
-                  Estoque: {p.estoque}
+                <div className={`text-xs mt-1 ${p.estoque <= 0 ? "text-destructive" : p.estoque <= 3 ? "text-primary" : "text-muted-foreground"}`}>
+                  {p.estoque <= 0 ? "Esgotado" : p.estoque <= 3 ? "Últimas unidades" : `Estoque: ${p.estoque}`}
                 </div>
               </div>
               <div className="flex flex-col gap-1">

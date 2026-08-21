@@ -101,14 +101,10 @@ export default function AdminPedidos() {
     <AdminLayout>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Pedidos ao vivo</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Pedidos</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Recebe novos pedidos em tempo real • {pedidos.length} pendente{pedidos.length === 1 ? "" : "s"}
+            {pedidos.length} pendente{pedidos.length === 1 ? "" : "s"}
           </p>
-        </div>
-        <div className="hidden sm:flex items-center gap-2 glass rounded-2xl px-4 py-2 text-xs">
-          <span className="h-2 w-2 rounded-full bg-success animate-pulse" />
-          <span className="text-muted-foreground">Ouvindo eventos…</span>
         </div>
       </div>
 
@@ -121,7 +117,7 @@ export default function AdminPedidos() {
       ) : pedidos.length === 0 ? (
         <div className="glass-card p-16 text-center">
           <Bell className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
-          <p className="text-muted-foreground">Nenhum pedido pendente. Aguardando clientes…</p>
+          <p className="text-muted-foreground">Nenhum pedido</p>
         </div>
       ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">

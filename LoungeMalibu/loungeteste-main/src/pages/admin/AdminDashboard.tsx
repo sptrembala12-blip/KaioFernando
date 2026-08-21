@@ -62,7 +62,7 @@ export default function AdminDashboard() {
       <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-sm text-muted-foreground mt-1">Faturamento e produtos mais vendidos</p>
+          <p className="text-sm text-muted-foreground mt-1">Vendas</p>
         </div>
         <div className="glass rounded-2xl p-1 flex">
           {ranges.map((r) => (
@@ -90,7 +90,7 @@ export default function AdminDashboard() {
         {loading ? (
           <div className="space-y-2">{Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-12 rounded-xl bg-muted/50 animate-pulse" />)}</div>
         ) : stats.ranking.length === 0 ? (
-          <p className="text-muted-foreground text-sm py-8 text-center">Nenhuma venda no período.</p>
+          <p className="text-muted-foreground text-sm py-8 text-center">Nenhuma venda</p>
         ) : (
           <ul className="space-y-2">
             {stats.ranking.map((p, i) => {

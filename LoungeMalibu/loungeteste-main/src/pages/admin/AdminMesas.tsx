@@ -60,8 +60,8 @@ export default function AdminMesas() {
     <AdminLayout>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Mesas / QR Code</h1>
-          <p className="text-sm text-muted-foreground mt-1">{mesas.length} mesa{mesas.length === 1 ? "" : "s"} cadastrada{mesas.length === 1 ? "" : "s"}</p>
+          <h1 className="text-3xl font-bold tracking-tight">Mesas</h1>
+          <p className="text-sm text-muted-foreground mt-1">{mesas.length} mesa{mesas.length === 1 ? "" : "s"}</p>
         </div>
         <Button onClick={adicionar} className="rounded-2xl bg-gradient-primary text-primary-foreground shadow-amber ios-tap">
           <Plus className="h-4 w-4 mr-2" /> Nova mesa
@@ -70,8 +70,10 @@ export default function AdminMesas() {
 
       <div className="grid lg:grid-cols-[1fr_400px] gap-6">
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-          {loading ? (
+            {loading ? (
             Array.from({ length: 6 }).map((_, i) => <div key={i} className="glass-card h-28 animate-pulse" />)
+          ) : mesas.length === 0 ? (
+            <div className="col-span-full glass-card p-10 text-center text-muted-foreground">Nenhuma mesa</div>
           ) : (
             mesas.map((m) => (
               <button
