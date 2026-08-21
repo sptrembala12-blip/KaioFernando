@@ -122,7 +122,7 @@ export default function CardapioCliente() {
       <header className="sticky top-0 z-30 glass-strong border-b border-border/30 safe-top">
         <div className="max-w-2xl mx-auto px-5 py-4 flex items-center justify-between">
           <div>
-            <div className="text-xs text-primary uppercase tracking-widest font-medium">Lounge<span className="text-foreground/70">OS</span></div>
+            <div className="text-xs text-primary uppercase tracking-widest font-medium">LoungeMalibu</div>
             <div className="text-xl font-bold tracking-tight">
               {mesa ? <>Mesa <span className="text-gradient-amber">{mesa.numero}</span></> : "Cardápio"}
             </div>

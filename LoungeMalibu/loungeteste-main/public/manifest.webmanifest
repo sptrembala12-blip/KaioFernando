@@ -1,7 +1,7 @@
 {
-  "name": "Malibu Caixa",
-  "short_name": "Malibu",
-  "description": "Caixa Malibu Lounge",
+  "name": "LoungeMalibu",
+  "short_name": "LoungeMalibu",
+  "description": "Painel do dono — LoungeMalibu",
   "start_url": "/dono",
   "scope": "/",
   "display": "standalone",

@@ -31,7 +31,7 @@ export default function SetupSupabase({ onSaved }: { onSaved: () => void }) {
       <div className="w-full max-w-md">
         <div className="flex flex-col items-center mb-8">
           <img src="/favicon.png" alt="" className="h-16 w-16 rounded-2xl shadow-amber mb-5" />
-          <h1 className="text-[13px] tracking-[0.35em] uppercase text-primary/90 font-medium">Malibu</h1>
+          <h1 className="text-[13px] tracking-[0.22em] uppercase text-primary/90 font-medium">LoungeMalibu</h1>
           <p className="mt-2 text-2xl font-semibold tracking-tight">Conectar Supabase</p>
         </div>
 

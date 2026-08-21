@@ -7,7 +7,6 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { USER_TESTE, SENHA_TESTE, SQL_CONFIRMAR_TESTE, entrarComUsuario, validarUsuario, traduzirErroAuth } from "@/lib/auth-usuario";
-import { AuthDebugPanel } from "@/components/AuthDebugPanel";
 import { authLog } from "@/lib/auth-log";
 
 export default function DonoLogin() {
@@ -55,8 +54,8 @@ export default function DonoLogin() {
       <div className="w-full max-w-sm">
         <div className="flex flex-col items-center mb-10">
           <img src="/favicon.png" alt="" className="h-16 w-16 rounded-2xl shadow-amber mb-5" />
-          <h1 className="text-[13px] tracking-[0.35em] uppercase text-primary/90 font-medium">Malibu</h1>
-          <p className="mt-2 text-2xl font-semibold tracking-tight">Caixa</p>
+          <h1 className="text-[13px] tracking-[0.22em] uppercase text-primary/90 font-medium">LoungeMalibu</h1>
+          <p className="mt-2 text-2xl font-semibold tracking-tight">Acesso</p>
         </div>
 
         <form onSubmit={handleSubmit} className="glass-card p-6 space-y-4">
@@ -94,22 +93,10 @@ export default function DonoLogin() {
         </form>
         {precisaSql && (
           <div className="mt-4 glass-card p-4 space-y-2 text-left">
-            <p className="text-xs text-muted-foreground">Conta criada. Confirme no SQL Editor do Supabase e entre de novo:</p>
+            <p className="text-xs text-muted-foreground">Confirme o usuário no SQL Editor do Supabase e entre de novo.</p>
             <pre className="text-[10px] font-mono whitespace-pre-wrap break-all text-primary/90">{SQL_CONFIRMAR_TESTE}</pre>
           </div>
         )}
-        <AuthDebugPanel />
-        <button
-          type="button"
-          className="w-full mt-4 text-[11px] text-muted-foreground hover:text-foreground"
-          onClick={() => {
-            localStorage.removeItem("malibu.supabase.url");
-            localStorage.removeItem("malibu.supabase.key");
-            window.location.reload();
-          }}
-        >
-          Trocar projeto Supabase
-        </button>
       </div>
     </div>
   );
