@@ -27,7 +27,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
         <div className="max-w-7xl mx-auto flex items-center gap-2 px-4 sm:px-6 h-16">
           <div className="flex items-center gap-2 mr-6">
             <div className="h-8 w-8 rounded-xl bg-gradient-primary shadow-amber" />
-            <span className="font-bold text-lg tracking-tight">Lounge<span className="text-primary">OS</span></span>
+            <span className="font-semibold text-lg tracking-tight">Malibu</span>
           </div>
           <nav className="flex items-center gap-1 overflow-x-auto no-scrollbar flex-1">
             {items.map((it) => {
@@ -54,7 +54,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
             to="/dono"
             className="hidden sm:flex ios-tap items-center px-3 h-10 rounded-2xl text-sm font-medium text-primary hover:bg-primary/10"
           >
-            App do dono
+            Caixa
           </RouterNavLink>
           <Button variant="ghost" size="sm" onClick={logout} className="rounded-2xl">
             <LogOut className="h-4 w-4 mr-2" /> Sair

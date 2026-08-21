@@ -6,12 +6,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
+import { usuarioParaEmail, validarUsuario } from "@/lib/auth-usuario";
 
 export default function AdminLogin() {
   const nav = useNavigate();
   const { user, isAdmin, loading } = useAuth();
   const [mode, setMode] = useState<"login" | "signup">("login");
-  const [email, setEmail] = useState("");
+  const [usuario, setUsuario] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
@@ -21,84 +22,86 @@ export default function AdminLogin() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    const erro = validarUsuario(usuario);
+    if (erro) {
+      toast.error(erro);
+      return;
+    }
     setSubmitting(true);
+    const email = usuarioParaEmail(usuario);
     try {
       if (mode === "signup") {
         const { error } = await supabase.auth.signUp({
           email,
           password,
-          options: { emailRedirectTo: `${window.location.origin}/admin` },
+          options: {
+            data: { display_name: usuario.trim() },
+            emailRedirectTo: `${window.location.origin}/admin`,
+          },
         });
         if (error) throw error;
-        toast.success("Conta criada!", { description: "Você já pode acessar o painel." });
+        toast.success("Acesso criado.");
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
-        toast.success("Bem-vindo de volta 🥃");
       }
     } catch (err: any) {
-      toast.error("Falha", { description: err.message });
+      toast.error("Não foi possível entrar", { description: err?.message ?? "Usuário ou senha inválidos." });
     } finally {
       setSubmitting(false);
     }
   }
 
   return (
-    <div className="min-h-screen grid place-items-center p-6 bg-gradient-glow">
-      <div className="w-full max-w-md glass-card p-8 space-y-6 animate-slide-up">
-        <div className="flex flex-col items-center gap-3">
-          <div className="h-14 w-14 rounded-3xl bg-gradient-primary shadow-amber animate-glow-pulse" />
-          <div className="text-center space-y-1">
-            <h1 className="text-3xl font-bold tracking-tight">Lounge<span className="text-gradient-amber">OS</span></h1>
-            <p className="text-sm text-muted-foreground">Painel administrativo</p>
-          </div>
+    <div className="min-h-screen grid place-items-center px-5 bg-gradient-glow">
+      <div className="w-full max-w-sm">
+        <div className="flex flex-col items-center mb-10">
+          <img src="/favicon.png" alt="" className="h-16 w-16 rounded-2xl shadow-amber mb-5" />
+          <h1 className="text-[13px] tracking-[0.35em] uppercase text-primary/90 font-medium">Malibu</h1>
+          <p className="mt-2 text-2xl font-semibold tracking-tight">Operação</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="glass-card p-6 space-y-4">
           <div className="space-y-2">
-            <Label>Email</Label>
+            <Label className="text-xs text-muted-foreground">Usuário</Label>
             <Input
-              type="email"
               required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="h-12 rounded-2xl bg-input/60 border-border/60"
-              placeholder="dono@bar.com"
+              autoCapitalize="none"
+              autoCorrect="off"
+              autoComplete="username"
+              value={usuario}
+              onChange={(e) => setUsuario(e.target.value)}
+              className="h-12 rounded-2xl bg-input/60 border-border/50"
             />
           </div>
           <div className="space-y-2">
-            <Label>Senha</Label>
+            <Label className="text-xs text-muted-foreground">Senha</Label>
             <Input
               type="password"
               required
               minLength={6}
+              autoComplete={mode === "signup" ? "new-password" : "current-password"}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="h-12 rounded-2xl bg-input/60 border-border/60"
-              placeholder="••••••••"
+              className="h-12 rounded-2xl bg-input/60 border-border/50"
             />
           </div>
-
           <Button
             type="submit"
             disabled={submitting}
-            className="w-full h-12 rounded-2xl text-base font-semibold bg-gradient-primary text-primary-foreground hover:opacity-90 shadow-amber ios-tap"
+            className="w-full h-12 rounded-2xl font-semibold bg-gradient-primary text-primary-foreground shadow-amber ios-tap"
           >
-            {submitting ? "..." : mode === "login" ? "Entrar" : "Criar conta"}
+            {submitting ? "Aguarde…" : mode === "login" ? "Entrar" : "Criar acesso"}
           </Button>
         </form>
 
         <button
           type="button"
           onClick={() => setMode((m) => (m === "login" ? "signup" : "login"))}
-          className="w-full text-sm text-muted-foreground hover:text-foreground transition-colors"
+          className="w-full mt-5 text-xs tracking-wide text-muted-foreground hover:text-foreground transition-colors"
         >
-          {mode === "login" ? "Primeiro acesso? Criar conta de admin" : "Já tem conta? Entrar"}
+          {mode === "login" ? "Criar acesso" : "Já tenho acesso"}
         </button>
-
-        <p className="text-xs text-muted-foreground text-center leading-relaxed">
-          O primeiro usuário cadastrado vira <span className="text-primary font-medium">admin</span> automaticamente.
-        </p>
       </div>
     </div>
   );

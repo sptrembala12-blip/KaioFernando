@@ -1,7 +1,7 @@
 {
-  "name": "LoungeOS Dono",
-  "short_name": "Dono",
-  "description": "Caixa do dono: venda aprovada só após confirmação manual do pagamento.",
+  "name": "Malibu Caixa",
+  "short_name": "Malibu",
+  "description": "Caixa Malibu Lounge",
   "start_url": "/dono",
   "scope": "/",
   "display": "standalone",

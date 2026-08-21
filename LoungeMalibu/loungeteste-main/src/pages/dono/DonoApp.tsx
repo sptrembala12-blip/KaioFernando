@@ -136,10 +136,8 @@ export default function DonoApp() {
       <header className="sticky top-0 z-40 glass-strong border-b border-border/40 safe-top">
         <div className="max-w-lg mx-auto px-4 h-16 flex items-center justify-between">
           <div>
-            <div className="text-[10px] uppercase tracking-widest text-primary font-semibold">Área do dono</div>
-            <div className="text-lg font-bold tracking-tight leading-tight">
-              Lounge<span className="text-primary">OS</span>
-            </div>
+            <div className="text-[11px] tracking-[0.28em] uppercase text-primary/90">Malibu</div>
+            <div className="text-lg font-semibold tracking-tight leading-tight">Caixa</div>
           </div>
           <div className="flex items-center gap-2">
             {!somOk && (
@@ -166,12 +164,8 @@ export default function DonoApp() {
           </div>
         </div>
 
-        <p className="text-xs text-muted-foreground px-1">
-          Notifica só quando o admin confirma o pagamento na mão. Pedido novo não conta como venda.
-        </p>
-
         <div>
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-3">Vendas de hoje</h2>
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-3">Hoje</h2>
           {loading ? (
             <div className="space-y-2">
               {Array.from({ length: 3 }).map((_, i) => (
@@ -181,7 +175,7 @@ export default function DonoApp() {
           ) : vendas.length === 0 ? (
             <div className="glass-card p-10 text-center">
               <Bell className="h-10 w-10 mx-auto text-muted-foreground/40 mb-3" />
-              <p className="text-muted-foreground text-sm">Nenhuma venda aprovada hoje.</p>
+              <p className="text-muted-foreground text-sm">Nenhuma venda hoje.</p>
             </div>
           ) : (
             <ul className="space-y-2">

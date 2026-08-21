@@ -6,11 +6,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
+import { usuarioParaEmail, validarUsuario } from "@/lib/auth-usuario";
 
 export default function DonoLogin() {
   const nav = useNavigate();
   const { user, isAdmin, loading } = useAuth();
-  const [email, setEmail] = useState("");
+  const [usuario, setUsuario] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
@@ -20,50 +21,57 @@ export default function DonoLogin() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    const erro = validarUsuario(usuario);
+    if (erro) {
+      toast.error(erro);
+      return;
+    }
     setSubmitting(true);
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const { error } = await supabase.auth.signInWithPassword({
+        email: usuarioParaEmail(usuario),
+        password,
+      });
       if (error) throw error;
-      toast.success("Bem-vindo");
     } catch (err: any) {
-      toast.error("Falha", { description: err.message });
+      toast.error("Não foi possível entrar", { description: "Usuário ou senha inválidos." });
     } finally {
       setSubmitting(false);
     }
   }
 
   return (
-    <div className="min-h-screen grid place-items-center p-6 bg-gradient-glow">
-      <div className="w-full max-w-md glass-card p-8 space-y-6">
-        <div className="text-center space-y-1">
-          <div className="text-[10px] uppercase tracking-widest text-primary font-semibold">PWA do dono</div>
-          <h1 className="text-3xl font-bold tracking-tight">
-            Lounge<span className="text-gradient-amber">OS</span>
-          </h1>
-          <p className="text-sm text-muted-foreground">Só o dono. Venda aprovada após confirmar o pagamento.</p>
+    <div className="min-h-screen grid place-items-center px-5 bg-gradient-glow">
+      <div className="w-full max-w-sm">
+        <div className="flex flex-col items-center mb-10">
+          <img src="/favicon.png" alt="" className="h-16 w-16 rounded-2xl shadow-amber mb-5" />
+          <h1 className="text-[13px] tracking-[0.35em] uppercase text-primary/90 font-medium">Malibu</h1>
+          <p className="mt-2 text-2xl font-semibold tracking-tight">Caixa</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="glass-card p-6 space-y-4">
           <div className="space-y-2">
-            <Label>Email</Label>
+            <Label className="text-xs text-muted-foreground">Usuário</Label>
             <Input
-              type="email"
               required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="h-12 rounded-2xl bg-input/60"
-              placeholder="dono@lounge.com"
+              autoCapitalize="none"
+              autoCorrect="off"
+              autoComplete="username"
+              value={usuario}
+              onChange={(e) => setUsuario(e.target.value)}
+              className="h-12 rounded-2xl bg-input/60 border-border/50"
             />
           </div>
           <div className="space-y-2">
-            <Label>Senha</Label>
+            <Label className="text-xs text-muted-foreground">Senha</Label>
             <Input
               type="password"
               required
               minLength={6}
+              autoComplete="current-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="h-12 rounded-2xl bg-input/60"
+              className="h-12 rounded-2xl bg-input/60 border-border/50"
             />
           </div>
           <Button
@@ -71,7 +79,7 @@ export default function DonoLogin() {
             disabled={submitting}
             className="w-full h-12 rounded-2xl font-semibold bg-gradient-primary text-primary-foreground shadow-amber"
           >
-            {submitting ? "..." : "Entrar"}
+            {submitting ? "Entrando…" : "Entrar"}
           </Button>
         </form>
       </div>
