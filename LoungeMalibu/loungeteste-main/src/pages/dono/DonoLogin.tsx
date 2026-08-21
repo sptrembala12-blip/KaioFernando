@@ -99,6 +99,17 @@ export default function DonoLogin() {
           </div>
         )}
         <AuthDebugPanel />
+        <button
+          type="button"
+          className="w-full mt-4 text-[11px] text-muted-foreground hover:text-foreground"
+          onClick={() => {
+            localStorage.removeItem("malibu.supabase.url");
+            localStorage.removeItem("malibu.supabase.key");
+            window.location.reload();
+          }}
+        >
+          Trocar projeto Supabase
+        </button>
       </div>
     </div>
   );
