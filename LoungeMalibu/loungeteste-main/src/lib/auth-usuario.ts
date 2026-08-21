@@ -8,7 +8,15 @@ export const EMAIL_TESTE = `${USER_TESTE}@${DOMINIO}`;
 
 export const SQL_CONFIRMAR_TESTE = `update auth.users
 set email_confirmed_at = now()
-where email = 'teste@malibu.app';`;
+where id = '45be011b-75f2-4926-a5af-026661018892';
+
+insert into public.user_roles (user_id, role)
+select '45be011b-75f2-4926-a5af-026661018892'::uuid, 'admin'::public.app_role
+where not exists (
+  select 1 from public.user_roles
+  where user_id = '45be011b-75f2-4926-a5af-026661018892'
+    and role = 'admin'
+);`;
 
 export function normalizarUsuario(usuario: string) {
   return usuario.trim().toLowerCase();
