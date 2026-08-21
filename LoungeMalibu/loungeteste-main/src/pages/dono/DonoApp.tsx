@@ -109,12 +109,12 @@ export default function DonoApp() {
     if (vistos.current.has(venda.id)) return;
     vistos.current.add(venda.id);
     const valor = formatBRL(venda.valor_total_centavos);
-    const msg = `Venda aprovada no ${valor}`;
-    const desc = `Mesa ${venda.mesa_numero} · ${formaLabel[venda.forma_pagamento]}`;
+    const forma = formaLabel[venda.forma_pagamento];
+    const msg = `Venda aprovada no ${forma} valor ${valor}`;
     if (prefsRef.current.som) playCashSound();
     setAprovada(venda);
-    toast.success(msg, { description: desc });
-    if (prefsRef.current.push) void notificarVendaPWA("LoungeMalibu", `${msg} · ${desc}`, venda.id);
+    toast.success("LoungeMalibu", { description: msg });
+    if (prefsRef.current.push) void notificarVendaPWA("LoungeMalibu", msg, venda.id);
   }
 
   useEffect(() => {
