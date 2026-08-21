@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
-import { Minus, Plus, ShoppingBag, X, CheckCircle2, Smartphone, CreditCard, Banknote } from "lucide-react";
+import { Minus, Plus, ShoppingBag, X, CheckCircle2, Smartphone, CreditCard, Banknote, Search, Wine } from "lucide-react";
 
 interface Produto {
   id: string;
@@ -22,6 +22,29 @@ interface Mesa { id: string; numero: number; }
 type ItemCarrinho = { produto: Produto; qtd: number };
 type Forma = "pix" | "credito" | "debito" | "dinheiro";
 
+function slugCat(c: string) {
+  return c.toLowerCase().replace(/\s+/g, "-");
+}
+
+function Foto({ url, nome, esgotado, compact }: { url: string | null; nome: string; esgotado?: boolean; compact?: boolean }) {
+  return (
+    <div className={`relative ${compact ? "h-14 w-14 rounded-xl" : "h-24 w-24 rounded-2xl"} bg-secondary overflow-hidden shrink-0 ${esgotado ? "grayscale opacity-50" : ""}`}>
+      {url ? (
+        <img src={url} alt={nome} className="h-full w-full object-cover" />
+      ) : (
+        <div className="h-full w-full grid place-items-center bg-gradient-to-br from-secondary to-muted">
+          <Wine className="h-8 w-8 text-primary/50" />
+        </div>
+      )}
+      {esgotado && (
+        <div className="absolute inset-0 grid place-items-center bg-background/40">
+          <span className="text-[10px] uppercase tracking-wider bg-destructive text-destructive-foreground px-2 py-0.5 rounded-full font-bold">Esgotado</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function CardapioCliente() {
   const [params] = useSearchParams();
   const mesaHash = params.get("mesa");
@@ -32,14 +55,15 @@ export default function CardapioCliente() {
   const [checkout, setCheckout] = useState(false);
   const [sucesso, setSucesso] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [busca, setBusca] = useState("");
+  const [catAtiva, setCatAtiva] = useState<string | null>(null);
 
-  // Sem mesa? mostra demo: pega a primeira ativa
   useEffect(() => {
     (async () => {
       let q = supabase.from("mesas").select("id, numero").eq("ativa", true).limit(1);
       if (mesaHash) q = supabase.from("mesas").select("id, numero").eq("hash", mesaHash).eq("ativa", true).limit(1) as any;
       const { data } = await q;
-      if (!data?.length) { setMesaErro(!!mesaHash); }
+      if (!data?.length) setMesaErro(!!mesaHash);
       else setMesa(data[0] as any);
 
       const { data: prods } = await supabase.from("produtos").select("*").eq("ativo", true).order("categoria").order("nome");
@@ -49,6 +73,16 @@ export default function CardapioCliente() {
   }, [mesaHash]);
 
   const categorias = useMemo(() => Array.from(new Set(produtos.map((p) => p.categoria))), [produtos]);
+  const visiveis = useMemo(() => {
+    const t = busca.trim().toLowerCase();
+    return produtos.filter((p) => {
+      if (catAtiva && p.categoria !== catAtiva) return false;
+      if (!t) return true;
+      return p.nome.toLowerCase().includes(t) || (p.descricao ?? "").toLowerCase().includes(t) || p.categoria.toLowerCase().includes(t);
+    });
+  }, [produtos, busca, catAtiva]);
+  const catsVisiveis = useMemo(() => Array.from(new Set(visiveis.map((p) => p.categoria))), [visiveis]);
+
   const itensCarrinho = Object.values(carrinho);
   const total = itensCarrinho.reduce((s, it) => s + it.qtd * it.produto.preco_centavos, 0);
   const qtdTotal = itensCarrinho.reduce((s, it) => s + it.qtd, 0);
@@ -67,7 +101,10 @@ export default function CardapioCliente() {
   function remove(p: Produto) {
     setCarrinho((c) => {
       const cur = c[p.id]?.qtd ?? 0;
-      if (cur <= 1) { const { [p.id]: _, ...rest } = c; return rest; }
+      if (cur <= 1) {
+        const { [p.id]: _, ...rest } = c;
+        return rest;
+      }
       return { ...c, [p.id]: { produto: p, qtd: cur - 1 } };
     });
   }
@@ -90,8 +127,7 @@ export default function CardapioCliente() {
     const r = data as any;
     if (!r?.ok) {
       if (r?.erro === "estoque_insuficiente") {
-        toast.error(`Desculpe, acabamos de vender a última unidade de ${r.produto} 🥺`, { duration: 5000 });
-        // recarrega estoque
+        toast.error(`Acabou o estoque de ${r.produto}`, { duration: 5000 });
         const { data: prods } = await supabase.from("produtos").select("*").eq("ativo", true).order("categoria").order("nome");
         setProdutos((prods ?? []) as any);
       } else {
@@ -105,12 +141,20 @@ export default function CardapioCliente() {
     setTimeout(() => setSucesso(false), 4000);
   }
 
+  function irCat(cat: string) {
+    setCatAtiva((cur) => (cur === cat ? null : cat));
+    setTimeout(() => {
+      document.getElementById(`cat-${slugCat(cat)}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 50);
+  }
+
   if (mesaErro) {
     return (
       <div className="min-h-screen grid place-items-center p-6 bg-gradient-glow">
         <div className="glass-card p-8 max-w-sm text-center space-y-3">
+          <img src="/favicon.png" alt="" className="h-14 w-14 rounded-2xl mx-auto" />
           <h2 className="text-2xl font-bold">QR inválido</h2>
-          <p className="text-muted-foreground text-sm">Esta mesa não existe ou foi desativada. Peça ao garçom o QR atualizado.</p>
+          <p className="text-muted-foreground text-sm">Esta mesa não existe ou foi desativada. Peça o QR atualizado.</p>
         </div>
       </div>
     );
@@ -118,47 +162,74 @@ export default function CardapioCliente() {
 
   return (
     <div className="min-h-screen pb-32 bg-gradient-glow">
-      {/* Header */}
       <header className="sticky top-0 z-30 glass-strong border-b border-border/30 safe-top">
-        <div className="max-w-2xl mx-auto px-5 py-4 flex items-center justify-between">
-          <div>
-            <div className="text-xs text-primary uppercase tracking-widest font-medium">LoungeMalibu</div>
-            <div className="text-xl font-bold tracking-tight">
-              {mesa ? <>Mesa <span className="text-gradient-amber">{mesa.numero}</span></> : "Cardápio"}
+        <div className="max-w-2xl mx-auto px-5 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-3 min-w-0">
+            <img src="/favicon.png" alt="LoungeMalibu" className="h-10 w-10 rounded-xl shrink-0" />
+            <div className="min-w-0">
+              <div className="text-[11px] tracking-[0.18em] uppercase text-primary font-medium">LoungeMalibu</div>
+              <div className="text-lg font-bold tracking-tight leading-tight">
+                {mesa ? <>Mesa <span className="text-gradient-amber">{mesa.numero}</span></> : "Cardápio"}
+              </div>
             </div>
           </div>
-          <div className="h-11 w-11 rounded-2xl bg-gradient-primary shadow-amber" />
         </div>
+        <div className="max-w-2xl mx-auto px-5 pb-3">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              value={busca}
+              onChange={(e) => setBusca(e.target.value)}
+              placeholder="Buscar no cardápio"
+              className="h-11 rounded-2xl bg-input/50 border-border/40 pl-10"
+            />
+          </div>
+        </div>
+        {categorias.length > 1 && (
+          <div className="max-w-2xl mx-auto px-5 pb-3 flex gap-2 overflow-x-auto no-scrollbar">
+            <button
+              onClick={() => setCatAtiva(null)}
+              className={`shrink-0 h-8 px-3 rounded-full text-xs font-medium ${!catAtiva ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"}`}
+            >
+              Tudo
+            </button>
+            {categorias.map((c) => (
+              <button
+                key={c}
+                onClick={() => irCat(c)}
+                className={`shrink-0 h-8 px-3 rounded-full text-xs font-medium ${catAtiva === c ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"}`}
+              >
+                {c}
+              </button>
+            ))}
+          </div>
+        )}
       </header>
 
-      <div className="max-w-2xl mx-auto px-5 pt-6 space-y-8">
+      <div className="max-w-2xl mx-auto px-5 pt-5 space-y-8">
         {loading ? (
           <div className="space-y-4">{Array.from({ length: 4 }).map((_, i) => <div key={i} className="glass-card h-28 animate-pulse" />)}</div>
+        ) : visiveis.length === 0 ? (
+          <div className="glass-card p-12 text-center">
+            <Wine className="h-10 w-10 mx-auto text-muted-foreground/40 mb-3" />
+            <p className="text-muted-foreground text-sm">{busca ? "Nada encontrado." : "Cardápio vazio. Cadastre produtos no painel."}</p>
+          </div>
         ) : (
-          categorias.map((cat) => (
-            <section key={cat} className="space-y-3">
+          catsVisiveis.map((cat) => (
+            <section key={cat} id={`cat-${slugCat(cat)}`} className="space-y-3 scroll-mt-36">
               <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-semibold px-1">{cat}</h2>
               <div className="space-y-3">
-                {produtos.filter((p) => p.categoria === cat).map((p) => {
+                {visiveis.filter((p) => p.categoria === cat).map((p) => {
                   const esgotado = p.estoque <= 0;
                   const noCarrinho = carrinho[p.id]?.qtd ?? 0;
+                  const pouco = !esgotado && p.estoque <= 3;
                   return (
-                    <motion.div
-                      key={p.id}
-                      layout
-                      className="glass-card p-3 flex gap-3 relative overflow-hidden"
-                    >
-                      <div className={`relative h-24 w-24 rounded-2xl bg-secondary overflow-hidden shrink-0 ${esgotado ? "grayscale opacity-50" : ""}`}>
-                        {p.imagem_url && <img src={p.imagem_url} alt={p.nome} className="h-full w-full object-cover" />}
-                        {esgotado && (
-                          <div className="absolute inset-0 grid place-items-center">
-                            <span className="text-[10px] uppercase tracking-wider bg-destructive text-destructive-foreground px-2 py-0.5 rounded-full font-bold">Esgotado</span>
-                          </div>
-                        )}
-                      </div>
+                    <motion.div key={p.id} layout className="glass-card p-3 flex gap-3 relative overflow-hidden">
+                      <Foto url={p.imagem_url} nome={p.nome} esgotado={esgotado} />
                       <div className="flex-1 min-w-0 flex flex-col">
                         <h3 className="font-semibold leading-tight">{p.nome}</h3>
                         {p.descricao && <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">{p.descricao}</p>}
+                        {pouco && <p className="text-[10px] text-primary mt-1">Últimas unidades</p>}
                         <div className="mt-auto flex items-end justify-between pt-2">
                           <span className="font-bold text-lg">{formatBRL(p.preco_centavos)}</span>
                           {esgotado ? (
@@ -185,7 +256,6 @@ export default function CardapioCliente() {
         )}
       </div>
 
-      {/* Bottom bar carrinho */}
       <AnimatePresence>
         {qtdTotal > 0 && !checkout && (
           <motion.div
@@ -207,13 +277,12 @@ export default function CardapioCliente() {
                   <div className="font-bold">{formatBRL(total)}</div>
                 </div>
               </div>
-              <span className="text-primary font-semibold">Continuar →</span>
+              <span className="text-primary font-semibold">Continuar</span>
             </button>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Checkout sheet */}
       <AnimatePresence>
         {checkout && mesa && (
           <CheckoutSheet
@@ -227,25 +296,20 @@ export default function CardapioCliente() {
         )}
       </AnimatePresence>
 
-      {/* Sucesso */}
       <AnimatePresence>
         {sucesso && (
-          <motion.div
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 grid place-items-center p-6 bg-background/70 backdrop-blur-md"
-          >
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 grid place-items-center p-6 bg-background/70 backdrop-blur-md">
             <motion.div
               initial={{ scale: 0.7 }} animate={{ scale: 1 }} exit={{ scale: 0.8 }}
-              transition={{ type: "spring", stiffness: 300, damping: 22 }}
               className="glass-strong rounded-4xl p-8 max-w-sm text-center space-y-4"
             >
-              <div className="h-16 w-16 mx-auto rounded-3xl bg-gradient-primary grid place-items-center shadow-amber">
-                <CheckCircle2 className="h-8 w-8 text-primary-foreground" />
-              </div>
+              <img src="/favicon.png" alt="" className="h-14 w-14 rounded-2xl mx-auto" />
               <div>
-                <h2 className="text-2xl font-bold">Pedido enviado!</h2>
+                <div className="text-[11px] tracking-[0.2em] uppercase text-primary">LoungeMalibu</div>
+                <h2 className="text-2xl font-bold mt-1">Pedido enviado</h2>
                 <p className="text-muted-foreground text-sm mt-1">O garçom já foi avisado e vai até a sua mesa.</p>
               </div>
+              <CheckCircle2 className="h-8 w-8 text-primary mx-auto" />
             </motion.div>
           </motion.div>
         )}
@@ -254,7 +318,6 @@ export default function CardapioCliente() {
   );
 }
 
-// ===== Checkout sheet =====
 function CheckoutSheet({
   itens, total, onClose, onConfirm, onAdd, onRemove,
 }: {
@@ -306,9 +369,7 @@ function CheckoutSheet({
           <ul className="space-y-3">
             {itens.map((it) => (
               <li key={it.produto.id} className="flex items-center gap-3">
-                <div className="h-14 w-14 rounded-xl bg-secondary overflow-hidden shrink-0">
-                  {it.produto.imagem_url && <img src={it.produto.imagem_url} alt="" className="h-full w-full object-cover" />}
-                </div>
+                <Foto url={it.produto.imagem_url} nome={it.produto.nome} />
                 <div className="flex-1 min-w-0">
                   <div className="font-medium truncate">{it.produto.nome}</div>
                   <div className="text-sm text-muted-foreground">{formatBRL(it.produto.preco_centavos)}</div>
@@ -328,7 +389,7 @@ function CheckoutSheet({
           </div>
 
           <div>
-            <Label className="text-xs uppercase tracking-wider text-muted-foreground">Forma de pagamento</Label>
+            <Label className="text-xs uppercase tracking-wider text-muted-foreground">Como vai pagar na mesa</Label>
             <div className="grid grid-cols-2 gap-2 mt-2">
               {([
                 { k: "pix" as const, l: "Pix", I: Smartphone },
@@ -347,32 +408,20 @@ function CheckoutSheet({
                 </button>
               ))}
             </div>
-            <p className="text-xs text-muted-foreground mt-2">O pagamento é feito na mesa. O garçom levará a maquininha ou troco.</p>
+            <p className="text-xs text-muted-foreground mt-2">O pagamento é na mesa. O garçom leva a maquininha ou o troco.</p>
           </div>
 
           {forma === "dinheiro" && (
             <div className="space-y-3 glass rounded-2xl p-4">
               <Label>Precisa de troco?</Label>
               <div className="grid grid-cols-2 gap-2">
-                <button
-                  onClick={() => setPrecisaTroco(false)}
-                  className={`h-11 rounded-xl ios-tap font-medium ${precisaTroco === false ? "bg-primary text-primary-foreground" : "bg-secondary"}`}
-                >Não</button>
-                <button
-                  onClick={() => setPrecisaTroco(true)}
-                  className={`h-11 rounded-xl ios-tap font-medium ${precisaTroco === true ? "bg-primary text-primary-foreground" : "bg-secondary"}`}
-                >Sim</button>
+                <button onClick={() => setPrecisaTroco(false)} className={`h-11 rounded-xl ios-tap font-medium ${precisaTroco === false ? "bg-primary text-primary-foreground" : "bg-secondary"}`}>Não</button>
+                <button onClick={() => setPrecisaTroco(true)} className={`h-11 rounded-xl ios-tap font-medium ${precisaTroco === true ? "bg-primary text-primary-foreground" : "bg-secondary"}`}>Sim</button>
               </div>
               {precisaTroco && (
                 <div className="space-y-2">
                   <Label className="text-xs">Troco para quanto?</Label>
-                  <Input
-                    inputMode="decimal"
-                    value={trocoStr}
-                    onChange={(e) => setTrocoStr(e.target.value)}
-                    placeholder="100,00"
-                    className="rounded-xl bg-input/60 h-12 text-lg"
-                  />
+                  <Input inputMode="decimal" value={trocoStr} onChange={(e) => setTrocoStr(e.target.value)} placeholder="100,00" className="rounded-xl bg-input/60 h-12 text-lg" />
                   {trocoPara > 0 && (
                     <p className={`text-sm ${trocoCalc >= 0 ? "text-success" : "text-destructive"}`}>
                       {trocoCalc >= 0 ? `Troco: ${formatBRL(trocoCalc)}` : "Valor menor que o total"}
@@ -388,7 +437,7 @@ function CheckoutSheet({
             onClick={confirmar}
             className="w-full h-14 rounded-2xl text-base font-semibold bg-gradient-primary text-primary-foreground shadow-amber ios-tap disabled:opacity-40"
           >
-            {enviando ? "Enviando..." : `Finalizar pedido • ${formatBRL(total)}`}
+            {enviando ? "Enviando..." : `Enviar pedido · ${formatBRL(total)}`}
           </Button>
         </div>
       </motion.div>
