@@ -1,0 +1,178 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* iOS 26 Dark Premium — Glassmorphism + Amber accent */
+
+@layer base {
+  :root {
+    /* Surfaces */
+    --background: 220 15% 4%;
+    --foreground: 40 15% 96%;
+
+    --card: 220 14% 8%;
+    --card-foreground: 40 15% 96%;
+
+    --popover: 220 14% 8%;
+    --popover-foreground: 40 15% 96%;
+
+    /* Amber accent (premium gold) */
+    --primary: 38 95% 58%;
+    --primary-foreground: 220 15% 6%;
+    --primary-glow: 42 100% 70%;
+
+    --secondary: 220 12% 14%;
+    --secondary-foreground: 40 15% 96%;
+
+    --muted: 220 12% 12%;
+    --muted-foreground: 220 8% 60%;
+
+    --accent: 38 95% 58%;
+    --accent-foreground: 220 15% 6%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 142 70% 45%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 38 95% 58%;
+
+    --border: 220 14% 16%;
+    --input: 220 14% 14%;
+    --ring: 38 95% 58%;
+
+    --radius: 1.25rem;
+
+    /* Glass surfaces */
+    --glass-bg: 220 15% 10% / 0.55;
+    --glass-border: 40 30% 80% / 0.08;
+    --glass-highlight: 40 50% 90% / 0.06;
+
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(38 95% 58%), hsl(28 95% 50%));
+    --gradient-glow: radial-gradient(ellipse at top, hsl(38 95% 58% / 0.18), transparent 60%);
+    --gradient-surface: linear-gradient(180deg, hsl(220 15% 8% / 0.7), hsl(220 15% 4% / 0.7));
+
+    /* Shadows */
+    --shadow-glass: 0 8px 32px 0 hsl(0 0% 0% / 0.45), inset 0 1px 0 hsl(40 50% 90% / 0.06);
+    --shadow-amber: 0 10px 40px -10px hsl(38 95% 58% / 0.55);
+    --shadow-soft: 0 4px 24px hsl(0 0% 0% / 0.35);
+
+    /* Motion */
+    --ease-ios: cubic-bezier(0.32, 0.72, 0, 1);
+
+    --sidebar-background: 220 15% 6%;
+    --sidebar-foreground: 40 15% 90%;
+    --sidebar-primary: 38 95% 58%;
+    --sidebar-primary-foreground: 220 15% 6%;
+    --sidebar-accent: 220 12% 12%;
+    --sidebar-accent-foreground: 40 15% 96%;
+    --sidebar-border: 220 14% 14%;
+    --sidebar-ring: 38 95% 58%;
+  }
+
+  .dark {
+    /* same — app is dark by default */
+    --background: 220 15% 4%;
+    --foreground: 40 15% 96%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    color-scheme: dark;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text',
+      'Inter', system-ui, sans-serif;
+    font-feature-settings: 'cv11', 'ss01', 'ss03';
+    -webkit-font-smoothing: antialiased;
+    background-image:
+      radial-gradient(ellipse 80% 50% at 50% -10%, hsl(38 95% 58% / 0.12), transparent),
+      radial-gradient(ellipse 60% 40% at 90% 110%, hsl(280 80% 50% / 0.08), transparent);
+    background-attachment: fixed;
+    min-height: 100vh;
+  }
+
+  h1, h2, h3, h4 {
+    letter-spacing: -0.02em;
+    font-weight: 700;
+  }
+}
+
+@layer components {
+  /* Glass surface — the iOS 26 signature */
+  .glass {
+    background: hsl(var(--glass-bg));
+    backdrop-filter: blur(28px) saturate(180%);
+    -webkit-backdrop-filter: blur(28px) saturate(180%);
+    border: 1px solid hsl(var(--glass-border));
+    box-shadow: var(--shadow-glass);
+  }
+
+  .glass-strong {
+    background: hsl(220 15% 8% / 0.75);
+    backdrop-filter: blur(40px) saturate(200%);
+    -webkit-backdrop-filter: blur(40px) saturate(200%);
+    border: 1px solid hsl(var(--glass-border));
+    box-shadow: var(--shadow-glass);
+  }
+
+  .glass-card {
+    @apply glass rounded-3xl;
+  }
+
+  .ios-tap {
+    transition: transform 0.18s var(--ease-ios), opacity 0.18s var(--ease-ios);
+  }
+  .ios-tap:active {
+    transform: scale(0.96);
+    opacity: 0.85;
+  }
+
+  .text-gradient-amber {
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .ring-amber-glow {
+    box-shadow: 0 0 0 1px hsl(38 95% 58% / 0.3), 0 0 30px hsl(38 95% 58% / 0.2);
+  }
+}
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+  .safe-bottom {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+  .safe-top {
+    padding-top: max(1rem, env(safe-area-inset-top));
+  }
+}
+
+/* iOS-style number badge animation */
+@keyframes badge-pop {
+  0% { transform: scale(0.6); opacity: 0; }
+  60% { transform: scale(1.15); }
+  100% { transform: scale(1); opacity: 1; }
+}
+.animate-badge-pop { animation: badge-pop 0.32s var(--ease-ios); }
+
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 20px hsl(38 95% 58% / 0.4); }
+  50% { box-shadow: 0 0 40px hsl(38 95% 58% / 0.7); }
+}
+.animate-glow-pulse { animation: glow-pulse 2s ease-in-out infinite; }
